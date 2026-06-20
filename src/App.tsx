@@ -27,7 +27,6 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>('cosmic');
   const [currentView, setCurrentView] = useState<View>('home');
   const [user, setUser] = useState<{ firebase: FirebaseUser, isAdmin: boolean } | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -35,7 +34,7 @@ export default function App() {
     // Fail-safe for auth check to prevent infinite loading
     const authTimeout = setTimeout(() => {
       setIsAuthChecking(false);
-    }, 2000);
+    }, 1000);
 
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       clearTimeout(authTimeout); // Auth responded, clear initial fail-safe
@@ -89,15 +88,9 @@ export default function App() {
       setIsAuthChecking(false);
     });
 
-    // Initial splash loading delay
-    const splashTimer = setTimeout(() => {
-      setLoading(false);
-    }, 800);
-
     return () => {
       unsubscribe();
       clearTimeout(authTimeout);
-      clearTimeout(splashTimer);
     };
   }, []);
 
@@ -124,14 +117,12 @@ export default function App() {
       theme === 'cosmic' ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"
     )}>
       <AnimatePresence mode="wait">
-        {(loading || isAuthChecking) ? (
-          <LoadingScreen key="loading" theme={theme} />
-        ) : !user ? (
+        {isAuthChecking ? null : !user ? (
           <LoginGate key="login" theme={theme} onLogin={handleLogin} />
         ) : null}
       </AnimatePresence>
 
-      {user && !loading && !isAuthChecking && (
+      {user && !isAuthChecking && (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

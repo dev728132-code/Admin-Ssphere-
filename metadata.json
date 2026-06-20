@@ -1,6 +1,6 @@
 {
-  "name": "NOVAFF ELITE",
-  "description": "Premium gaming enhancement utility dashboard with immersive design, secure procurement flows, and real-time user activity tracking.",
+  "name": "Genesis AI Platform",
+  "description": "Premium AI-powered tracking dashboard featuring dynamic theme selection, real-time activity views, and smart assistant.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
