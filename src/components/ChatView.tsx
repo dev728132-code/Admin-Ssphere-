@@ -74,6 +74,7 @@ export default function ChatView({ theme, user }: { theme: Theme, user: any }) {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let fullModelResponse = "";
+      let buffer = "";
       setStreamingContent("");
 
       setIsLoading(false); // Enable input while receiving stream. Displaying custom streamer.
@@ -89,8 +90,10 @@ export default function ChatView({ theme, user }: { theme: Theme, user: any }) {
         const { done, value } = await reader.read();
         if (done) break;
         
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        
+        buffer = lines.pop() || ''; // Keep the incomplete line in the buffer
         
         for (const line of lines) {
           if (line.startsWith('data: ')) {
@@ -147,7 +150,7 @@ export default function ChatView({ theme, user }: { theme: Theme, user: any }) {
       </div>
 
       <div className={cn(
-        "rounded-[2.5rem] p-6 sm:p-8 border h-[600px] flex flex-col relative overflow-hidden",
+        "rounded-[2.5rem] p-4 sm:p-8 border h-[calc(100vh-16rem)] min-h-[500px] flex flex-col relative overflow-hidden",
         isCosmic ? "bg-slate-900/50 border-slate-800" : "bg-white border-slate-200 shadow-sm"
       )}>
         <div className="flex-1 overflow-y-auto pr-2 space-y-6 scrollbar-hide py-4">

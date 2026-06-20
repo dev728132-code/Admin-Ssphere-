@@ -83,7 +83,7 @@ export default function MobileDrawer({
                   "font-display font-bold uppercase tracking-tight text-sm",
                   isCosmic ? "text-white" : "text-slate-900"
                 )}>
-                  NovaFF <span className="text-cosmic-blue">Elite</span>
+                  Genesis <span className="text-cosmic-blue">AI</span>
                 </span>
               </div>
               <button 

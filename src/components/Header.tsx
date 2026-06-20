@@ -58,7 +58,7 @@ export default function Header({ theme, currentView, onViewChange, onToggleTheme
               "font-display text-xl font-bold tracking-tight uppercase",
               isCosmic ? "text-white" : "text-slate-900"
             )}>
-              NOVAFF <span className="text-cosmic-blue">ELITE</span>
+              Genesis <span className="text-cosmic-blue">AI</span>
             </span>
           </div>
         </div>
