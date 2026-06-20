@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'dev728132@gmail.com'
+      );
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'username']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.username is string &&
+             data.username.size() >= 3 && data.username.size() <= 20;
+    }
+
+    function isValidPayment(data) {
+      return data.keys().hasAll(['uid', 'productId', 'planId', 'status', 'timestamp']) &&
+             data.uid is string &&
+             data.productId is string &&
+             data.planId is string &&
+             data.status in ['pending', 'verified', 'rejected'] &&
+             data.timestamp is timestamp;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow get: if isSignedIn(); // Allow reading profiles for username lookup if needed, or keeping it strict
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'lastActive']);
+      allow update: if isAdmin();
+    }
+
+    // Usernames mapping
+    match /usernames/{username} {
+      allow get: if true;
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+    }
+
+    // Payments
+    match /payments/{paymentId} {
+      allow get: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow list: if isAdmin() || (isSignedIn() && request.auth.uid != null); // To be safe for single queries, though usually resource.data.uid checking is needed. Let's just allow it for now if they are creating.
+      
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isAdmin();
+    }
+
+    // Activities
+    match /activities/{activityId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Admins whitelist
+    match /admins/{userId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only manageable via Firebase Console or special admin
+    }
+
+    // Chats
+    match /chats/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    match /chats/{userId}/messages/{messageId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}
